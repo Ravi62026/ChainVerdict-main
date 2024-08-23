@@ -5,6 +5,7 @@ import darkLogo from "../assets/logo-dark.jpeg";
 import { NavLink } from "react-router-dom";
 import ThemeBtn from "./ThemeBtn";
 import { useTheme } from "../context/theme";
+import Web3 from "web3";
 
 const menuItems = [
   {
@@ -23,13 +24,14 @@ const menuItems = [
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [account, setAccount] = useState("");
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const { theme } = useTheme();
-  const [logo, setLogo] = useState("Logo");
+  const [logo, setLogo] = useState(Logo);
 
   useEffect(() => {
     if (theme === "dark") {
@@ -39,36 +41,61 @@ export function Navbar() {
     }
   }, [theme]);
 
+  useEffect(() => {
+    // Check if MetaMask is installed
+    if (window.ethereum) {
+      const web3 = new Web3(window.ethereum);
+
+      // Function to handle connecting to MetaMask
+      const connectMetaMask = async () => {
+        try {
+          const accounts = await window.ethereum.request({
+            method: "eth_requestAccounts",
+          });
+          setAccount(accounts[0]);
+        } catch (error) {
+          console.error("User denied account access");
+        }
+      };
+
+      // Handle account changes
+      window.ethereum.on("accountsChanged", (accounts) => {
+        setAccount(accounts[0]);
+      });
+
+      // Check if the user is already connected
+      web3.eth.getAccounts().then((accounts) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        }
+      });
+
+      // Connect to MetaMask when the button is clicked
+      document.getElementById("account-button").addEventListener("click", connectMetaMask);
+    } else {
+      console.error("MetaMask is not installed.");
+    }
+  }, []);
+
+  // Truncate the account address
+  const truncateAddress = (address) => {
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
+
   return (
     <div className="w-full bg-gray-100 shadow-lg dark:shadow-gray-500 dark:shadow-md sticky top-0 z-20 dark:bg-black">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
         <div className="inline-flex items-center space-x-2">
           <span>
-            <img src={logo} alt="" width="50" height="50" />
+            <img src={logo} alt="Logo" width="50" height="50" />
           </span>
         </div>
         <div className="hidden lg:block">
           <ul className="inline-flex space-x-8">
             {menuItems.map((item) => (
               <li key={item.name}>
-                {/* <NavLink
-                to={item.to}
-                className={({ isActive }) =>
-                  `text-md font-semibold text-gray-800 hover:text-amber-900 hover:font-extrabold 
-                  ${isActive?"text-amber-900 font-extrabold": "text-gray-800 "}`
-                }
-              >
-                {item.name}
-              </NavLink> */}
                 <NavLink
                   to={item.to}
-                  key={item.name}
-                  isActive={(match) => {
-                    if (!match) {
-                      return false;
-                    }
-                    return true;
-                  }}
                   className={({ isActive }) =>
                     `-m-3 flex items-center rounded-md p-3 text-sm font-semibold hover:text-amber-900 ${
                       isActive
@@ -85,14 +112,13 @@ export function Navbar() {
         </div>
         <div className="hidden lg:flex items-center justify-between w-[15%]">
           <ThemeBtn />
-          <NavLink to={"/wallet"}>
-            <button
-              type="button"
-              className="bg-black dark:bg-white px-3 py-2.5 text-sm font-semibold text-white dark:text-black shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:focus-visible:outline-white rounded-xl hover:scale-110 hover:bg-[#333] ease-in-out transition-all duration-300"
-            >
-              Account
-            </button>
-          </NavLink>
+          <button
+            id="account-button"
+            type="button"
+            className="bg-black dark:bg-white px-3 py-2.5 text-sm font-semibold text-white dark:text-black shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:focus-visible:outline-white rounded-xl hover:scale-110 hover:bg-[#333] ease-in-out transition-all duration-300"
+          >
+            {account ? truncateAddress(account) : "Account"}
+          </button>
         </div>
         <div className="lg:hidden">
           {theme === "dark" ? (
@@ -112,7 +138,7 @@ export function Navbar() {
                 <div className="flex items-center justify-between">
                   <div className="inline-flex items-center space-x-2">
                     <span>
-                      <img src={logo} alt="" width="200" height="200" />
+                      <img src={logo} alt="Logo" width="200" height="200" />
                     </span>
                   </div>
                   <div className="-mr-2">
@@ -132,11 +158,6 @@ export function Navbar() {
                       <NavLink
                         to={item.to}
                         key={item.name}
-                        isActive={(match) => {
-                          if (!match) {
-                            return false;
-                          }
-                        }}
                         className={({ isActive }) =>
                           `-m-3 flex items-center rounded-md p-3 text-sm font-semibold ${
                             isActive
@@ -150,10 +171,11 @@ export function Navbar() {
                     ))}
                     <ThemeBtn />
                     <button
+                      id="account-button-mobile"
                       type="button"
                       className=" bg-black dark:bg-white px-3 py-2.5 text-sm font-semibold text-white shadow-sm dark:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black rounded-xl hover:scale-110 hover:bg-[#333] ease-in-out transition-all duration-300"
                     >
-                      Account
+                      {account ? truncateAddress(account) : "Account"}
                     </button>
                   </nav>
                 </div>
