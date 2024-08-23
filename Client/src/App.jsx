@@ -9,7 +9,7 @@ import Layout from "./Layout";
 import Home from "./components/Home/Home";
 import About from "./components/About";
 import Contact from "./components/Contact";
-// import Wallet from './components/Wallet'
+// import Wallet from './components/Wallet' 
 import Analyser from "./components/Home/Analyser";
 import Form from "./components/Home/Form";
 import FIR from "./components/Home/FIR";
